@@ -2,7 +2,7 @@ use reqwest::blocking::Client;
 use reqwest::header::USER_AGENT;
 use scraper::{Html, Selector};
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::Link;
+use crate::types::Link;
 
 pub fn fetch_links(url: &str, client: &Client) -> Vec<Link> {
     let mut links = Vec::new();
