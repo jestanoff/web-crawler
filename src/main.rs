@@ -3,12 +3,12 @@ mod utils;
 mod types;
 mod constants;
 
-use reqwest::blocking::Client;
 use serde_json::json;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
-use fetch_links::fetch_links;
+use headless_chrome::{Browser, LaunchOptions};
+use fetch_links::fetch_links_with_browser;
 use utils::{normalize_url, show_loading_indicator, show_completion_message};
 use chrono::Utc;
 
@@ -21,17 +21,15 @@ fn main() {
     let url = url.trim();
     let url = normalize_url(url);
 
-    let client = Client::builder()
-        .user_agent(constants::USER_AGENT)
-        .build()
-        .expect("Failed to create client");
+    let browser = Browser::new(LaunchOptions::default())
+        .expect("Failed to launch browser");
     let mut all_links = Vec::new();
     let mut visited_urls = HashSet::new();
 
     // Fetch links from the main page
     if visited_urls.insert(url.clone()) {
         let start_time = show_loading_indicator(&url);
-        let links = fetch_links(&url, &client);
+        let links = fetch_links_with_browser(&url, &browser);
         show_completion_message(&url, start_time);
         all_links.extend(links.clone());
     }
@@ -41,13 +39,13 @@ fn main() {
         let normalized_link = normalize_url(&link.url);
         if visited_urls.insert(normalized_link.clone()) {
             let start_time = show_loading_indicator(&normalized_link);
-            let sub_links = fetch_links(&normalized_link, &client);
+            let sub_links = fetch_links_with_browser(&normalized_link, &browser);
             show_completion_message(&normalized_link, start_time);
             all_links.extend(sub_links);
         }
     }
 
-    let json_data = json!(all_links);
+    let json_data: serde_json::Value = json!(all_links);
     let domain = url
       .trim_start_matches("http://")
       .trim_start_matches("https://")

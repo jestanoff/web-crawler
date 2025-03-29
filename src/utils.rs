@@ -15,12 +15,12 @@ pub fn normalize_url(url: &str) -> String {
 }
 
 pub fn show_loading_indicator(url: &str) -> Instant {
-    let frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    let frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏', ];
     let start_time = Instant::now();
     for frame in frames.iter() {
         print!("\r{} {}", frame, url);
         std::io::stdout().flush().unwrap();
-        sleep(Duration::from_millis(100));
+        sleep(Duration::from_millis(150));
     }
     start_time
 }
@@ -31,3 +31,4 @@ pub fn show_completion_message(url: &str, start_time: Instant) {
     let padded_url = format!("{:<width$}", url, width = terminal_width - 2);
     println!("\r\x1b[32m✓\x1b[0m {} {:.3}s", padded_url, elapsed);
 }
+

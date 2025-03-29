@@ -2,13 +2,14 @@ use reqwest::blocking::Client;
 use reqwest::header::USER_AGENT;
 use scraper::{Html, Selector};
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::types::Link;
+use headless_chrome::Browser;
+use crate::{constants, types::{self, Link}};
 
-pub fn fetch_links(url: &str, client: &Client) -> Vec<Link> {
+fn fetch_links(url: &str, client: &Client) -> Vec<Link> {
     let mut links = Vec::new();
     let response = client
         .get(url)
-        .header(USER_AGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Version/14.0 Safari/537.36")
+        .header(USER_AGENT, constants::USER_AGENT)
         .send()
         .expect("Failed to fetch the URL");
     let body = response.text().expect("Failed to read response body");
@@ -32,4 +33,13 @@ pub fn fetch_links(url: &str, client: &Client) -> Vec<Link> {
         }
     }
     links
+}
+
+pub fn fetch_links_with_browser(url: &str, browser: &Browser) -> Vec<types::Link> {
+    let tab = browser.new_tab().expect("Failed to create new tab");
+    tab.navigate_to(url).expect("Failed to navigate to URL");
+    tab.wait_until_navigated().expect("Failed to wait for navigation");
+
+    let client = reqwest::blocking::Client::new();
+    fetch_links(&url, &client)
 }
